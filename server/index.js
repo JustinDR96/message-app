@@ -3,7 +3,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 const app = express();
@@ -63,7 +63,8 @@ io.on("connection", (socket) => {
 });
 
 app.use(cors());
-// POST /conversations
+
+// === Routes ====
 app.post("/conversations", async (req, res) => {
   const { userId, participantId } = req.body;
 
