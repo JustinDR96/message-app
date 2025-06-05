@@ -2,7 +2,6 @@
   "name": "socket-server",
   "main": "index.js",
   "scripts": {
-    "postinstall": "prisma generate",
     "start": "node index.js"
   },
   "dependencies": {
