@@ -1,13 +1,14 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useChatStore } from "@/store/chatStore";
-import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
-import UserItem from "@/components/chat/UserItem";
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
-import { SOCKET_URL, API_URL } from "@/constants/constants";
+import { SOCKET_URL } from "@/constants/constants";
+import UserItem from "@/components/chat/UserItem";
+import { getAllUsers } from "@/services/api/users";
+import { createConversation } from "@/services/api/conversations";
 
 type User = {
   id: string;
@@ -36,26 +37,19 @@ export default function UserSidebar() {
 
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["users"],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/users`);
-      if (!res.ok)
-        throw new Error("Erreur lors du chargement des utilisateurs");
-      return res.json();
+    queryFn: getAllUsers,
+  });
+
+  const mutation = useMutation({
+    mutationFn: (participantId: string) =>
+      createConversation(session!.user!.id, participantId),
+    onSuccess: (conversation, participantId) => {
+      openChat({ userId: participantId, conversationId: conversation.id });
     },
   });
 
-  const handleClick = async (userId: string) => {
-    const res = await fetch(`${API_URL}/conversations`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ participantId: userId }),
-    });
-
-    if (!res.ok)
-      throw new Error("Erreur lors de la création de la conversation");
-
-    const conversation = await res.json();
-    openChat({ userId, conversationId: conversation.id });
+  const handleClick = (participantId: string) => {
+    mutation.mutate(participantId);
   };
 
   return (

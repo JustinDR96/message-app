@@ -66,6 +66,27 @@ app.use(cors());
 app.use(express.json());
 
 // === Routes ====
+// server/routes/login.js (ou /api/login)
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user || !user.hashedPassword)
+    return res.status(401).json({ error: "No user found" });
+
+  const isValid = await bcrypt.compare(password, user.hashedPassword);
+  if (!isValid) return res.status(401).json({ error: "Invalid password" });
+
+  // Tu peux aussi ajouter image, name, etc.
+  return res.status(200).json({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    image: user.image,
+  });
+});
+
 app.post("/conversations", async (req, res) => {
   const { userId, participantId } = req.body;
 
@@ -111,7 +132,7 @@ app.get("/conversations/:id", async (req, res) => {
   const userId = req.query.userId; // le frontend doit l'envoyer ici
 
   if (!userId) {
-    return res.status(400).json({ message: "userId requis dans la query" });
+    return res.status(400).json({ message: "userId requis" }); // 👈 ← ERREUR ICI
   }
 
   try {

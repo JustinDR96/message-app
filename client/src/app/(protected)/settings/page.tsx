@@ -6,6 +6,7 @@ import "@uploadthing/react/styles.css";
 import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
+import { updateUserImage } from "@/services/api/userImage";
 
 export default function SettingsPage() {
   const { data: session, update } = useSession();
@@ -25,17 +26,21 @@ export default function SettingsPage() {
       <UploadButton<OurFileRouter>
         endpoint="profileImage"
         onClientUploadComplete={async (res) => {
-          const url = res[0].url || res[0].ufsUrl; // sécurité future
+          const url = res[0].url || res[0].ufsUrl;
           setImageUrl(url);
 
-          await fetch("/api/user/image", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: url }),
-          });
+          if (!session?.user?.email) {
+            alert("Session invalide, veuillez vous reconnecter");
+            return;
+          }
 
-          await update(); // <-- force le refresh de session next-auth
-          alert("Image mise à jour !");
+          try {
+            await updateUserImage(session.user.email, url);
+            await update();
+            alert("Image mise à jour !");
+          } catch (err: any) {
+            alert("Erreur : " + err.message);
+          }
         }}
         onUploadError={(err) => {
           alert("Erreur : " + err.message);

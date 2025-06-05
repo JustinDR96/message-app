@@ -8,13 +8,13 @@ export const ourFileRouter = {
   profileImage: f({ image: { maxFileSize: "2MB" } })
     .middleware(async ({ req }) => {
       const token = await getToken({ req: req as NextRequest });
-      if (!token || !token.sub) throw new Error("Unauthorized");
+      if (!token?.sub) throw new Error("Unauthorized");
 
       return { userId: token.sub };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
+    .onUploadComplete(async ({ file, metadata }) => {
       console.log("✅ Upload terminé :", file.url);
-      // Tu peux ajouter ici un appel DB si tu veux
+      // Tu peux appeler ta DB ici si tu veux stocker l'URL
     }),
 } satisfies FileRouter;
 

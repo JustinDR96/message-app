@@ -18,7 +18,10 @@ import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { SOCKET_URL, API_URL } from "@/constants/constants";
+import { SOCKET_URL } from "@/constants/constants";
+import { getMessages } from "@/services/api/messages";
+import { getOtherUser } from "@/services/api/conversations";
+import { getCurrentUserId } from "@/services/api/me";
 
 type Message = {
   id: string;
@@ -50,16 +53,9 @@ export default function Chat({ conversationId }: Props) {
   const socketRef = useRef<Socket | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // GET messages via API backend
   const { data: messages = [] } = useQuery<Message[]>({
     queryKey: ["messages", conversationId],
-    queryFn: async () => {
-      const res = await fetch(
-        `${API_URL}/messages?conversationId=${conversationId}`
-      );
-      if (!res.ok) throw new Error("Erreur chargement messages");
-      return res.json();
-    },
+    queryFn: () => getMessages(conversationId),
     enabled: !!conversationId,
   });
 
@@ -99,23 +95,21 @@ export default function Chat({ conversationId }: Props) {
   };
 
   useEffect(() => {
-    // GET userId depuis backend
-    fetch(`${API_URL}/me`)
-      .then((res) => res.json())
-      .then((data) => setUserId(data.userId))
+    getCurrentUserId()
+      .then(setUserId)
       .catch(() => setUserId(null));
   }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  useEffect(() => {
-    fetch(`${API_URL}/conversations/${conversationId}`)
-      .then((res) => res.json())
+    if (!userId) return;
+    getOtherUser(conversationId, userId)
       .then((data) => setOtherUser(data.user))
       .catch(() => setOtherUser(null));
-  }, [conversationId]);
+  }, [conversationId, userId]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   return (
     <Card className="flex flex-col h-[600px] border-0 shadow-none">
