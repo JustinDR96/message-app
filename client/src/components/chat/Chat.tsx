@@ -53,29 +53,16 @@ export default function Chat({ conversationId }: Props) {
   const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["messages", conversationId],
     queryFn: async () => {
-      const res = await fetch(`/api/messages?conversationId=${conversationId}`);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/messages?conversationId=${conversationId}`
+      );
+
       return res.json();
     },
     enabled: !!conversationId,
   });
 
   const { register, handleSubmit, reset } = useForm<{ text: string }>();
-
-  const mutation = useMutation({
-    mutationFn: async (text: string) => {
-      const res = await fetch("/api/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, conversationId }),
-      });
-      if (!res.ok) throw new Error("Erreur d'envoi");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
-      reset();
-    },
-  });
 
   useEffect(() => {
     if (!conversationId) return;

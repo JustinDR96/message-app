@@ -61,6 +61,48 @@ io.on("connection", (socket) => {
   });
 });
 
+app.use(cors());
+// POST /conversations
+app.post("/conversations", async (req, res) => {
+  const { userId, participantId } = req.body;
+
+  if (!userId || !participantId) {
+    return res.status(400).json({ message: "userId et participantId requis" });
+  }
+
+  try {
+    // Vérifie s'il existe déjà une conversation entre les deux
+    const existing = await prisma.conversation.findFirst({
+      where: {
+        participants: {
+          every: {
+            id: { in: [userId, participantId] },
+          },
+        },
+      },
+      include: { participants: true },
+    });
+
+    if (existing && existing.participants.length === 2) {
+      return res.json(existing);
+    }
+
+    // Sinon, crée la conversation
+    const newConv = await prisma.conversation.create({
+      data: {
+        participants: {
+          connect: [{ id: userId }, { id: participantId }],
+        },
+      },
+    });
+
+    return res.status(201).json(newConv);
+  } catch (error) {
+    console.error("Erreur création conversation :", error);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`🚀 Serveur Socket.IO prêt sur http://localhost:${PORT}`);
