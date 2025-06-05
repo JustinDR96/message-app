@@ -2,7 +2,7 @@
 
 import { SessionProvider } from "next-auth/react";
 import { Session } from "next-auth";
-import Navbar from "@/components/shared/Navbar";
+import { useEffect, useState } from "react";
 
 export default function ClientWrapper({
   children,
@@ -11,10 +11,11 @@ export default function ClientWrapper({
   children: React.ReactNode;
   session: Session;
 }) {
-  return (
-    <SessionProvider session={session}>
-      <Navbar />
-      {children}
-    </SessionProvider>
-  );
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+  return <SessionProvider session={session}>{children}</SessionProvider>;
 }

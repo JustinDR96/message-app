@@ -9,6 +9,12 @@ import { SOCKET_URL } from "@/constants/constants";
 import UserItem from "@/components/chat/UserItem";
 import { getAllUsers } from "@/services/api/users";
 import { createConversation } from "@/services/api/conversations";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 type User = {
   id: string;
@@ -53,16 +59,11 @@ export default function UserSidebar() {
   };
 
   return (
-    <aside className="fixed top--56 right-0 w-64 h-full bg-white border-l p-4 space-y-2 z-40">
-      <h2 className="text-lg font-semibold mb-4">Utilisateurs</h2>
-      {users.map((user) => (
-        <UserItem
-          key={user.id}
-          user={user}
-          isOnline={onlineUserIds.includes(user.id)}
-          onClick={() => handleClick(user.id)}
-        />
-      ))}
-    </aside>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <SidebarTrigger />
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

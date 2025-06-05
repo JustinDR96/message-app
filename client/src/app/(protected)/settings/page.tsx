@@ -11,9 +11,10 @@ import { updateUserImage } from "@/services/api/userImage";
 export default function SettingsPage() {
   const { data: session, update } = useSession();
   const [imageUrl, setImageUrl] = useState(session?.user?.image ?? "");
+  console.log("Coucou depuis la page dashboard");
 
   return (
-    <div className="max-w-md mx-auto mt-10 space-y-6">
+    <div>
       <h1 className="text-2xl font-bold">Photo de profil</h1>
 
       <Avatar className="w-20 h-20">
@@ -23,7 +24,7 @@ export default function SettingsPage() {
         </AvatarFallback>
       </Avatar>
 
-      <UploadButton<OurFileRouter>
+      <UploadButton<OurFileRouter, "profileImage">
         endpoint="profileImage"
         onClientUploadComplete={async (res) => {
           const url = res[0].url || res[0].ufsUrl;
