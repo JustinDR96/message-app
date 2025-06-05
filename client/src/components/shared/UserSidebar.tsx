@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import UserItem from "@/components/chat/UserItem";
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
+import { SOCKET_URL } from "@/constants/constants";
 
 type User = {
   id: string;
@@ -22,7 +23,7 @@ export default function UserSidebar() {
   useEffect(() => {
     if (status !== "authenticated" || !session?.user?.id) return;
 
-    const socket = io("http://localhost:3001");
+    const socket = io(SOCKET_URL);
 
     socket.emit("userConnected", session.user.id);
 

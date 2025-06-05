@@ -18,6 +18,7 @@ import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { SOCKET_URL } from "@/constants/constants";
 
 type Message = {
   id: string;
@@ -79,9 +80,13 @@ export default function Chat({ conversationId }: Props) {
   useEffect(() => {
     if (!conversationId) return;
 
-    const socket = io("http://localhost:3001");
+    const socket = io(SOCKET_URL);
     socketRef.current = socket;
     socket.emit("joinConversation", conversationId);
+    socket.on("connect", () => {
+      console.log("✅ Connecté au serveur de chat");
+    });
+    socket.emit("message", { text: "Hello depuis le front !" });
 
     socket.on("newMessage", () => {
       queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
