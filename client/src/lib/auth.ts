@@ -10,9 +10,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password required");
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
         const res = await fetch(`${process.env.BACKEND_URL}/login`, {
           method: "POST",
@@ -23,25 +21,33 @@ export const authOptions: NextAuthOptions = {
           }),
         });
 
-        if (!res.ok) throw new Error("Invalid credentials");
+        if (!res.ok) return null; // => provoque le 401
 
         const user = await res.json();
-        return user; // { id, email, name, image }
+
+        // Doit au minimum contenir `id` et `email`
+        if (!user.id || !user.email) return null;
+
+        return user;
       },
     }),
   ],
+
   pages: {
     signIn: "/login",
   },
+
   session: {
     strategy: "jwt",
   },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.name = user.name;
-        token.image = user.image;
+        token.name = user.name ?? null;
+        token.email = user.email ?? null;
+        token.image = user.image ?? null;
       }
       return token;
     },
@@ -55,5 +61,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 };
