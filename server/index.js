@@ -4,10 +4,9 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
-
 const prisma = new PrismaClient();
-const app = express();
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: "*", // remplace par l’URL Vercel si nécessaire
@@ -62,7 +61,9 @@ io.on("connection", (socket) => {
   });
 });
 
+const app = express();
 app.use(cors());
+app.use(express.json());
 
 // === Routes ====
 app.post("/conversations", async (req, res) => {
