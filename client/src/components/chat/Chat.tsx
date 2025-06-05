@@ -12,13 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SendHorizonal } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { SOCKET_URL } from "@/constants/constants";
+import { SOCKET_URL, API_URL } from "@/constants/constants";
 
 type Message = {
   id: string;
@@ -50,13 +50,14 @@ export default function Chat({ conversationId }: Props) {
   const socketRef = useRef<Socket | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { data: messages = [], isLoading } = useQuery<Message[]>({
+  // GET messages via API backend
+  const { data: messages = [] } = useQuery<Message[]>({
     queryKey: ["messages", conversationId],
     queryFn: async () => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/messages?conversationId=${conversationId}`
+        `${API_URL}/messages?conversationId=${conversationId}`
       );
-
+      if (!res.ok) throw new Error("Erreur chargement messages");
       return res.json();
     },
     enabled: !!conversationId,
@@ -65,15 +66,16 @@ export default function Chat({ conversationId }: Props) {
   const { register, handleSubmit, reset } = useForm<{ text: string }>();
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !userId) return;
 
     const socket = io(SOCKET_URL);
     socketRef.current = socket;
+
     socket.emit("joinConversation", conversationId);
+
     socket.on("connect", () => {
       console.log("✅ Connecté au serveur de chat");
     });
-    socket.emit("message", { text: "Hello depuis le front !" });
 
     socket.on("newMessage", () => {
       queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
@@ -82,7 +84,7 @@ export default function Chat({ conversationId }: Props) {
     return () => {
       socket.disconnect();
     };
-  }, [conversationId, queryClient]);
+  }, [conversationId, userId, queryClient]);
 
   const onSubmit = (data: { text: string }) => {
     if (!userId || !data.text.trim()) return;
@@ -97,7 +99,8 @@ export default function Chat({ conversationId }: Props) {
   };
 
   useEffect(() => {
-    fetch("/api/me")
+    // GET userId depuis backend
+    fetch(`${API_URL}/me`)
       .then((res) => res.json())
       .then((data) => setUserId(data.userId))
       .catch(() => setUserId(null));
@@ -108,7 +111,7 @@ export default function Chat({ conversationId }: Props) {
   }, [messages]);
 
   useEffect(() => {
-    fetch(`/api/conversations/${conversationId}`)
+    fetch(`${API_URL}/conversations/${conversationId}`)
       .then((res) => res.json())
       .then((data) => setOtherUser(data.user))
       .catch(() => setOtherUser(null));
@@ -169,12 +172,8 @@ export default function Chat({ conversationId }: Props) {
           onSubmit={handleSubmit(onSubmit)}
           className="flex gap-2 w-full items-center"
         >
-          <Input
-            {...register("text")}
-            placeholder="Écris ton message..."
-            disabled={mutation.isPending}
-          />
-          <Button type="submit" size="icon" disabled={mutation.isPending}>
+          <Input {...register("text")} placeholder="Écris ton message..." />
+          <Button type="submit" size="icon">
             <SendHorizonal className="w-4 h-4" />
           </Button>
         </form>

@@ -2,7 +2,8 @@
   "name": "socket-server",
   "main": "index.js",
   "scripts": {
-    "start": "npx prisma generate && node index.js"
+    "postinstall": "prisma generate",
+    "start": "node index.js"
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",
