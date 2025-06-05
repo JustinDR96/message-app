@@ -4,6 +4,7 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
+const app = express();
 const prisma = new PrismaClient();
 const server = http.createServer(app);
 
@@ -61,7 +62,6 @@ io.on("connection", (socket) => {
   });
 });
 
-const app = express();
 app.use(cors());
 app.use(express.json());
 
