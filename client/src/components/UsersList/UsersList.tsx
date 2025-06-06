@@ -59,13 +59,14 @@ function UsersList() {
   };
 
   return (
-    <div>
-      <h2>Liste des utilisateurs</h2>
+    <div className="h-screen">
       <ul>
         {users.map((user) => (
           <li key={user.id} onClick={() => handleClick(user.id)}>
-            {user.email}{" "}
-            {onlineUserIds.includes(user.id) ? "🟢 Connecté" : "🔴 Déconnecté"}
+            <div className="cursor-pointer items-center flex justify-between p-2">
+              <p>{user.email}</p>
+              <p>{onlineUserIds.includes(user.id) ? "🟢" : "🔴"}</p>
+            </div>
           </li>
         ))}
       </ul>

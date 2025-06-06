@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ModeToggle } from "@/components/ui/toggleDarkMode";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -14,15 +15,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
+import images from "@/assets";
 
 const Navbar = () => {
   const { data: session, status } = useSession();
 
   console.log("Session data:", session);
   return (
-    <nav className="flex items-center justify-between p-4">
+    <nav className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
       <h2>
-        <Link href={"/"}>WhatzApp</Link>
+        <Link href="/" className="flex items-center">
+          <Image
+            src={images.logoNoBg}
+            alt="Logo de l'application"
+            width={50}
+            height={50}
+          />
+          StackChat
+        </Link>
       </h2>
       <ul className="flex space-x-4 items-center">
         <li>
@@ -31,7 +41,7 @@ const Navbar = () => {
         <li>
           <ModeToggle />
         </li>
-        <li className="border-2 flex items-center">
+        <li className="flex items-center">
           {status === "authenticated" && (
             <DropdownMenu>
               <DropdownMenuTrigger>
@@ -53,8 +63,9 @@ const Navbar = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Button
-                    variant="outline"
+                    variant="destructive"
                     onClick={() => signOut({ callbackUrl: "/login" })}
+                    className="cursor-pointer"
                   >
                     Se déconnecter
                   </Button>
