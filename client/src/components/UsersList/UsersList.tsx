@@ -6,22 +6,19 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { SOCKET_URL } from "@/constants/constants";
-import UserItem from "@/components/chat/UserItem";
 import { getAllUsers } from "@/services/api/users";
 import { createConversation } from "@/services/api/conversations";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+
+
+const socket = io(SOCKET_URL);
 
 type User = {
   id: string;
   email: string;
 };
 
-export default function UserSidebar() {
-  const { openChat } = useChatStore();
+function UsersList() {
+ const { openChat } = useChatStore();
   const { data: session, status } = useSession();
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
 
@@ -58,10 +55,19 @@ export default function UserSidebar() {
   };
 
   return (
-    <SidebarProvider>
-      <SidebarInset>
-        <SidebarTrigger />
-      </SidebarInset>
-    </SidebarProvider>
+    <div>
+      <h2>Liste des utilisateurs</h2>
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>
+            {user.email}{" "}
+            {onlineUserIds.includes(user.id) ? "🟢 Connecté" : "🔴 Déconnecté"}
+            <button onClick={() => handleClick(user.id)}>Démarrer une conversation</button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
+
+export default UsersList;
