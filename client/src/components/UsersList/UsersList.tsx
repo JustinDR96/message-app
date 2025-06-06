@@ -9,21 +9,25 @@ import { SOCKET_URL } from "@/constants/constants";
 import { getAllUsers } from "@/services/api/users";
 import { createConversation } from "@/services/api/conversations";
 
-
-const socket = io(SOCKET_URL);
-
 type User = {
   id: string;
   email: string;
 };
 
 function UsersList() {
- const { openChat } = useChatStore();
+  const { openChat } = useChatStore();
   const { data: session, status } = useSession();
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
 
   useEffect(() => {
-    if (status !== "authenticated" || !session?.user?.id) return;
+    // Par celle-ci
+    if (
+      status !== "authenticated" ||
+      !session ||
+      !session.user ||
+      !session.user.id
+    )
+      return;
 
     const socket = io(SOCKET_URL);
     socket.emit("userConnected", session.user.id);
@@ -59,10 +63,9 @@ function UsersList() {
       <h2>Liste des utilisateurs</h2>
       <ul>
         {users.map((user) => (
-          <li key={user.id}>
+          <li key={user.id} onClick={() => handleClick(user.id)}>
             {user.email}{" "}
             {onlineUserIds.includes(user.id) ? "🟢 Connecté" : "🔴 Déconnecté"}
-            <button onClick={() => handleClick(user.id)}>Démarrer une conversation</button>
           </li>
         ))}
       </ul>
