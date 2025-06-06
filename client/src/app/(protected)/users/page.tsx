@@ -1,13 +1,14 @@
-import { FloatingChatBox } from "@/components/chat";
+// app/users/page.tsx (ou src/app/users/page.tsx)
+"use client";
+
 import UsersList from "@/components/UsersList/UsersList";
-console.log("FloatingChatBox ===>", FloatingChatBox); // 🔍
+import { FloatingChatBox } from "@/components/chat"; // ← voir note plus bas
 
 export default function UsersPage() {
-  console.log("✅ Je suis dans UsersPage");
   return (
     <div className="flex">
       <UsersList />
-      {FloatingChatBox ? <FloatingChatBox /> : "FloatingChatBox is undefined"}
+      <FloatingChatBox />
     </div>
   );
 }
